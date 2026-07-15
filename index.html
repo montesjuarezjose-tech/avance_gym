@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        
+        <div id="login-screen" class="screen active">
+            <div class="neumorphic-card text-center">
+                <h2>Bienvenido</h2>
+                <input type="text" id="username" placeholder="Nombre de usuario" class="neumorphic-input">
+                <input type="password" id="password" placeholder="Contraseña" class="neumorphic-input">
+                <button onclick="login()" class="neumorphic-btn">Iniciar Sesión / Registrarse</button>
+            </div>
+        </div>
+
+        <div id="main-screen" class="screen">
+            <h2 id="greeting">Hola, Usuario</h2>
+            
+            <div class="neumorphic-card">
+                <h3>Progreso Semanal</h3>
+                <div class="progress-container">
+                    <div class="progress-bar" id="weekly-progress"></div>
+                </div>
+                <p id="weekly-stats">0/0 Entrenamientos completados</p>
+            </div>
+
+            <div class="neumorphic-card">
+                <h3>Próximos Entrenamientos</h3>
+                <ul id="upcoming-workouts" class="workout-list"></ul>
+                <button onclick="navigate('generate-screen')" class="neumorphic-btn mt-2">Crear Entrenamiento</button>
+            </div>
+            <button onclick="logout()" class="neumorphic-btn mt-2 secondary">Cerrar Sesión</button>
+        </div>
+
+        <div id="generate-screen" class="screen">
+            <h2>Nuevo Entrenamiento</h2>
+            
+            <input type="date" id="workout-date" class="neumorphic-input">
+            <input type="time" id="workout-time" class="neumorphic-input">
+            
+            <div class="split-view">
+                <div class="neumorphic-card half">
+                    <h3>Catálogo</h3>
+                    <ul id="exercise-catalog" class="exercise-list"></ul>
+                </div>
+                <div class="neumorphic-card half">
+                    <h3>Tu Rutina (Arrastra para ordenar)</h3>
+                    <ul id="selected-exercises" class="exercise-list" ondragover="allowDrop(event)" ondrop="drop(event)"></ul>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button onclick="saveWorkout()" class="neumorphic-btn">Guardar Entrenamiento</button>
+                <button onclick="navigate('main-screen')" class="neumorphic-btn secondary">Cancelar</button>
+            </div>
+        </div>
+
+        <div id="daily-screen" class="screen">
+            <div class="header-flex">
+                <h2 id="daily-title">Entrenamiento</h2>
+                <div class="circular-progress" id="daily-progress-circle">
+                    <span id="daily-progress-text">0%</span>
+                </div>
+            </div>
+
+            <div id="daily-exercise-list" class="daily-cards-container"></div>
+            
+            <div class="btn-group mt-2">
+                <button onclick="navigate('main-screen')" class="neumorphic-btn">Volver</button>
+                <button onclick="editWorkout()" class="neumorphic-btn secondary">Editar</button>
+            </div>
+        </div>
+
+        <div id="exercise-screen" class="screen">
+            <h2 id="detail-title">Ejercicio</h2>
+            
+            <div class="neumorphic-card" id="input-container">
+                </div>
+            
+            <button onclick="logExerciseData()" class="neumorphic-btn mt-2">Registrar</button>
+
+            <div class="neumorphic-card mt-2">
+                <h3>Progreso Histórico</h3>
+                <canvas id="progressChart"></canvas>
+            </div>
+
+            <button onclick="navigate('daily-screen')" class="neumorphic-btn mt-2 secondary">Volver al Día</button>
+        </div>
+
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
