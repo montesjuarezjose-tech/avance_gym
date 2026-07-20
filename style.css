@@ -1,17 +1,23 @@
+/* style.css - Diseño Oscuro Premium (Ref: image_0.png) */
 :root {
-    --bg-color: #e0e5ec;
-    --shadow-light: #ffffff;
-    --shadow-dark: #a3b1c6;
-    --text-main: #4a4a4a;
-    --primary-color: #6c5ce7;
-    --success-color: #00b894;
+    /* Paleta inspirada en Apple Fitness+ (image_0.png) */
+    --bg-color: #000000; /* Negro absoluto de fondo */
+    --card-bg: #1c1c1e; /* Gris muy oscuro para tarjetas */
+    --text-main: #ffffff; /* Blanco puro para texto principal */
+    --text-secondary: #8e8e93; /* Gris para subtítulos y textos secundarios */
+    
+    /* Colores vibrantes neón para progreso y acentos */
+    --primary-color: #30d158; /* Verde neón (similar a "Ejercicio" en image_0.png) */
+    --accent-blue: #0a84ff;   /* Azul vibrante (para fechas/tiempos) */
+    --accent-red: #ff453a;    /* Rojo neón (para alertas o cerrar sesión) */
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Sombra suave para dar profundidad */
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Tipografía más de sistema moderno */
 }
 
 body {
@@ -20,6 +26,7 @@ body {
     display: flex;
     justify-content: center;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased; /* Mejor renderizado de texto en oscuro */
 }
 
 .app-container {
@@ -38,62 +45,82 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 h2, h3 {
-    margin-bottom: 15px;
     color: var(--text-main);
+    font-weight: 700;
 }
+
+h2 { font-size: 2rem; margin-bottom: 5px; } /* Grande como "Resumen" en image_0.png */
+h3 { font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+
+p { color: var(--text-secondary); }
 
 .text-center { text-align: center; }
 .mt-2 { margin-top: 20px; }
 
-/* Neumorphism Elements */
-.neumorphic-card {
-    background-color: var(--bg-color);
-    border-radius: 15px;
+/* --- Estilos de Tarjetas (Premium Dark) --- */
+.dark-card {
+    background-color: var(--card-bg);
+    border-radius: 16px; /* Bordes redondeados suaves como en image_0.png */
     padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 9px 9px 16px var(--shadow-dark), 
-               -9px -9px 16px var(--shadow-light);
+    margin-bottom: 15px;
+    box-shadow: var(--card-shadow);
 }
 
-.neumorphic-input {
+/* --- Elementos de Entrada (Inputs) --- */
+.dark-input {
     width: 100%;
     padding: 15px;
     margin-bottom: 15px;
     border: none;
-    border-radius: 10px;
-    background-color: var(--bg-color);
-    box-shadow: inset 6px 6px 10px var(--shadow-dark), 
-                inset -6px -6px 10px var(--shadow-light);
+    border-radius: 12px;
+    background-color: #2c2c2e; /* Ligeramente más claro que la tarjeta */
     color: var(--text-main);
+    font-size: 1rem;
     outline: none;
+    transition: background-color 0.2s;
 }
 
-.neumorphic-btn {
+.dark-input:focus {
+    background-color: #3a3a3c;
+    border: 1px solid var(--accent-blue);
+}
+
+/* --- Botones Vibrant Modern --- */
+.main-btn {
     width: 100%;
-    padding: 15px;
+    padding: 16px;
     border: none;
-    border-radius: 10px;
-    background-color: var(--bg-color);
-    color: var(--primary-color);
-    font-weight: bold;
+    border-radius: 12px;
+    background-color: var(--primary-color);
+    color: #000000; /* Texto negro sobre fondo neón para contraste */
+    font-size: 1rem;
+    font-weight: 700;
     cursor: pointer;
-    box-shadow: 6px 6px 10px var(--shadow-dark), 
-               -6px -6px 10px var(--shadow-light);
-    transition: all 0.2s ease-in-out;
+    transition: transform 0.1s, opacity 0.2s;
 }
 
-.neumorphic-btn:active {
-    box-shadow: inset 6px 6px 10px var(--shadow-dark), 
-                inset -6px -6px 10px var(--shadow-light);
+.main-btn:active {
+    transform: scale(0.98);
 }
 
-.neumorphic-btn.secondary {
+.main-btn:hover {
+    opacity: 0.9;
+}
+
+.main-btn.secondary {
+    background-color: #2c2c2e;
     color: var(--text-main);
+}
+
+.main-btn.danger {
+    background-color: transparent;
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
 }
 
 .btn-group {
@@ -101,51 +128,129 @@ h2, h3 {
     gap: 10px;
 }
 
+/* --- Lista de Entrenamientos (Pantalla Principal) --- */
+.workout-list {
+    list-style: none;
+}
+
+.exercise-item {
+    padding: 18px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    background-color: #2c2c2e; /* Fondo de ítem dentro de tarjeta */
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.exercise-item:hover {
+    background-color: #3a3a3c;
+}
+
+.exercise-item span:first-child {
+    color: var(--accent-blue); /* La fecha/hora resalta en azul neón */
+    font-weight: 600;
+}
+
+.exercise-item span:last-child {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* --- Barra de Progreso Semanal (Estilo image_0.png) --- */
+.progress-stats-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.weekly-bar-container {
+    flex-grow: 1;
+    height: 12px;
+    background-color: #2c2c2e;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color) 0%, #a6ffcb 100%); /* Degradado verde neón */
+    border-radius: 6px;
+    width: 0%;
+    transition: width 0.5s ease-out;
+}
+
+#weekly-stats-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+#weekly-stats-total {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* --- Cabecera Principal (Saludo y Avatar imitando image_0.png) --- */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+.greeting-container {
+    display: flex;
+    flex-direction: column;
+}
+
+.current-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: capitalize;
+}
+
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #3a3a3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: var(--text-secondary);
+    border: 2px solid #2c2c2e;
+    font-size: 1.2rem;
+}
+
+/* ... (Estilos para las otras pantallas que quedan fuera del alcance de la modificación solicitada, pero se adaptan automáticamente por usar las clases globales .dark-card y .main-btn) ... */
+.circular-progress {
+    border: none; /* Quitamos bordes antiguos */
+    background: conic-gradient(var(--primary-color) 0%, #2c2c2e 0%);
+    box-shadow: var(--card-shadow);
+}
+
+.circular-progress span {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    box-shadow: none;
+}
 /* Listas y Drag & Drop */
 .exercise-list {
     list-style: none;
     min-height: 150px;
 }
-
-.exercise-item {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    background-color: var(--bg-color);
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-    cursor: grab;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.exercise-item:active { cursor: grabbing; }
-
-/* Barras y Círculos de Progreso */
-.progress-container {
-    width: 100%;
-    height: 10px;
-    background-color: var(--bg-color);
-    border-radius: 10px;
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
-    margin-bottom: 10px;
-}
-
-.progress-bar {
-    height: 100%;
-    background-color: var(--primary-color);
-    border-radius: 10px;
-    width: 0%;
-    transition: width 0.3s;
-}
-
 .header-flex {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
 }
-
 .circular-progress {
     width: 60px;
     height: 60px;

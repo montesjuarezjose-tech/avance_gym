@@ -3,61 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Tracker</title>
+    <title>Gym Tracker - Premium Dark</title>
+    <!-- Mantenemos style.css pero ahora tiene diseño oscuro -->
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
         
+        <!-- PANTALLA LOGIN: Se adapta automáticamente con clases genéricas oscuras -->
         <div id="login-screen" class="screen active">
-            <div class="neumorphic-card text-center">
+            <div class="dark-card text-center">
                 <h2>Bienvenido</h2>
-                <input type="text" id="username" placeholder="Nombre de usuario" class="neumorphic-input">
-                <input type="password" id="password" placeholder="Contraseña" class="neumorphic-input">
-                <button onclick="login()" class="neumorphic-btn">Iniciar Sesión / Registrarse</button>
+                <input type="text" id="username" placeholder="Nombre de usuario" class="dark-input">
+                <input type="password" id="password" placeholder="Contraseña" class="dark-input">
+                <button onclick="login()" class="main-btn">Iniciar Sesión / Registrarse</button>
             </div>
         </div>
 
+        <!-- PANTALLA PRINCIPAL (HOME): ESTA ES LA QUE HEMOS REDISEÑADO -->
         <div id="main-screen" class="screen">
-            <h2 id="greeting">Hola, Usuario</h2>
-            
-            <div class="neumorphic-card">
-                <h3>Progreso Semanal</h3>
-                <div class="progress-container">
-                    <div class="progress-bar" id="weekly-progress"></div>
+            <!-- Cabecera estilo image_0.png: Saludo a la izquierda, Avatar a la derecha -->
+            <div class="main-header">
+                <div class="greeting-container">
+                    <span class="current-date" id="current-date-display">martes, 1 abr</span> <!-- Se llena con JS -->
+                    <h2 id="greeting">Hola, Usuario</h2>
                 </div>
-                <p id="weekly-stats">0/0 Entrenamientos completados</p>
+                <!-- Avatar genérico (puedes poner imagen luego) -->
+                <div class="user-avatar" id="user-avatar-initials">U</div>
+            </div>
+            
+            <!-- Tarjeta de Semanas Ejercitándose -->
+            <div class="dark-card">
+                <h3>Semanas Ejercitándose</h3>
+                <div class="progress-stats-container">
+                    <div id="weekly-stats-text">
+                        <span id="weekly-stats-number">0</span> 
+                        <span id="weekly-stats-total">SEMANAS SEGUIDAS</span>
+                    </div>
+                    <div class="weekly-bar-container">
+                        <div class="progress-bar" id="weekly-progress"></div>
+                    </div>
+                </div>
             </div>
 
-            <div class="neumorphic-card">
+            <!-- Tarjeta de Próximos -->
+            <div class="dark-card">
                 <h3>Próximos Entrenamientos</h3>
-                <ul id="upcoming-workouts" class="workout-list"></ul>
-                <button onclick="navigate('generate-screen')" class="neumorphic-btn mt-2">Crear Entrenamiento</button>
+                <ul id="upcoming-workouts" class="workout-list">
+                    <!-- Los ítems se llenan con JS pero usarán el estilo oscuro -->
+                </ul>
+                <button onclick="navigate('generate-screen')" class="main-btn mt-2">
+                    <i>+</i> Crear Entrenamiento
+                </button>
             </div>
-            <button onclick="logout()" class="neumorphic-btn mt-2 secondary">Cerrar Sesión</button>
+            <!-- Botón de cerrar sesión, más discreto al final -->
+            <button onclick="logout()" class="main-btn mt-2 danger">Cerrar Sesión</button>
         </div>
 
+        <!-- OTRAS PANTALLAS: Se actualizan los nombres de clase para usar los nuevos estilos oscuros -->
         <div id="generate-screen" class="screen">
             <h2>Nuevo Entrenamiento</h2>
             
-            <input type="date" id="workout-date" class="neumorphic-input">
-            <input type="time" id="workout-time" class="neumorphic-input">
+            <input type="date" id="workout-date" class="dark-input">
+            <input type="time" id="workout-time" class="dark-input">
             
             <div class="split-view">
-                <div class="neumorphic-card half">
+                <div class="dark-card half">
                     <h3>Catálogo</h3>
                     <ul id="exercise-catalog" class="exercise-list"></ul>
                 </div>
-                <div class="neumorphic-card half">
-                    <h3>Tu Rutina (Arrastra para ordenar)</h3>
+                <div class="dark-card half">
+                    <h3>Tu Rutina (Arrastra)</h3>
                     <ul id="selected-exercises" class="exercise-list" ondragover="allowDrop(event)" ondrop="drop(event)"></ul>
                 </div>
             </div>
             
             <div class="btn-group">
-                <button onclick="saveWorkout()" class="neumorphic-btn">Guardar Entrenamiento</button>
-                <button onclick="navigate('main-screen')" class="neumorphic-btn secondary">Cancelar</button>
+                <button onclick="saveWorkout()" class="main-btn">Guardar</button>
+                <button onclick="navigate('main-screen')" class="main-btn secondary">Cancelar</button>
             </div>
         </div>
 
@@ -72,28 +96,28 @@
             <div id="daily-exercise-list" class="daily-cards-container"></div>
             
             <div class="btn-group mt-2">
-                <button onclick="navigate('main-screen')" class="neumorphic-btn">Volver</button>
-                <button onclick="editWorkout()" class="neumorphic-btn secondary">Editar</button>
+                <button onclick="navigate('main-screen')" class="main-btn secondary">Volver</button>
+                <button onclick="editWorkout()" class="main-btn danger">Editar</button>
             </div>
         </div>
 
         <div id="exercise-screen" class="screen">
             <h2 id="detail-title">Ejercicio</h2>
             
-            <div class="neumorphic-card" id="input-container">
-                </div>
+            <div class="dark-card" id="input-container"></div>
             
-            <button onclick="logExerciseData()" class="neumorphic-btn mt-2">Registrar</button>
+            <button onclick="logExerciseData()" class="main-btn mt-2">Registrar Datos</button>
 
-            <div class="neumorphic-card mt-2">
+            <div class="dark-card mt-2">
                 <h3>Progreso Histórico</h3>
                 <canvas id="progressChart"></canvas>
             </div>
 
-            <button onclick="navigate('daily-screen')" class="neumorphic-btn mt-2 secondary">Volver al Día</button>
+            <button onclick="navigate('daily-screen')" class="main-btn mt-2 secondary">Volver al Día</button>
         </div>
 
     </div>
+    <!-- Mantenemos app.js pero haremos pequeños ajustes -->
     <script src="app.js"></script>
 </body>
 </html>

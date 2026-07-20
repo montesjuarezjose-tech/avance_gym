@@ -1,4 +1,6 @@
-// Base de datos simulada del gimnasio (JSON)
+/* app.js - Ajustes para diseño oscuro */
+
+// Base de datos simulada y Estado (Mantenemos igual)
 const gymDatabase = [
     { id: 'e1', name: 'Press de Pecho', type: 'strength' },
     { id: 'e2', name: 'Sentadilla', type: 'strength' },
@@ -9,7 +11,6 @@ const gymDatabase = [
     { id: 'e7', name: 'Bicicleta Estática', type: 'cardio' }
 ];
 
-// Estado de la aplicación
 let currentUser = null;
 let currentWorkoutId = null;
 let currentExerciseIndex = null;
@@ -22,9 +23,22 @@ window.onload = () => {
         currentUser = savedUser;
         navigate('main-screen');
     }
+    
+    // Mostramos la fecha actual estilo image_0.png en el Home
+    updateCurrentDateDisplay();
 };
 
-// Navegación
+// Utilidad para la fecha (Estilo image_0.png: "martes, 1 abr")
+function updateCurrentDateDisplay() {
+    const dateEl = document.getElementById('current-date-display');
+    if (!dateEl) return;
+    const now = new Date();
+    const options = { weekday: 'long', day: 'numeric', month: 'short' };
+    // 'es-ES' para español, por ejemplo "martes, 1 abr"
+    dateEl.innerText = now.toLocaleDateString('es-ES', options);
+}
+
+// Navegación (Mantenemos igual)
 function navigate(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(screenId).classList.add('active');
@@ -42,7 +56,6 @@ function login() {
         currentUser = user;
         localStorage.setItem('currentUser', user);
         
-        // Inicializar estructura si es usuario nuevo
         if (!localStorage.getItem(`workouts_${user}`)) {
             localStorage.setItem(`workouts_${user}`, JSON.stringify([]));
         }
@@ -56,7 +69,7 @@ function logout() {
     navigate('login-screen');
 }
 
-// Utilidades de Datos
+// Utilidades de Datos (Mantenemos igual)
 function getWorkouts() {
     return JSON.parse(localStorage.getItem(`workouts_${currentUser}`)) || [];
 }
@@ -65,27 +78,35 @@ function saveWorkoutsToStorage(workouts) {
     localStorage.setItem(`workouts_${currentUser}`, JSON.stringify(workouts));
 }
 
-// Pantalla Principal
 function renderMainScreen() {
     document.getElementById('greeting').innerText = `Hola, ${currentUser}`;
+    const initialsEl = document.getElementById('user-avatar-initials');
+    if (initialsEl && currentUser) {
+        initialsEl.innerText = currentUser.charAt(0).toUpperCase();
+    }
+
     const workouts = getWorkouts();
-    
-    // Lista
     const listEl = document.getElementById('upcoming-workouts');
     listEl.innerHTML = '';
     
-    // Ordenar por fecha y hora
+    // Renderizar próximos entrenamientos
     workouts.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
     
-    let completedCount = 0;
-    
     workouts.forEach(w => {
-        const isCompleted = w.exercises.every(e => e.completed);
-        if (isCompleted) completedCount++;
+        if (listEl.children.length >= 3) return; 
+
+        const workoutDate = new Date(`${w.date}T${w.time}`);
+        // Modificación del formato de fecha 
+        const dateStr = workoutDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: '2-digit' }).replace(',', '');
+        const capitalizedDateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+        const timeStr = workoutDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
         
+        const formattedDateTime = `${capitalizedDateStr.split(' ')[0]} ${timeStr} | ${workoutDate.getDate()} ${workoutDate.toLocaleDateString('es-ES', { month: 'short' }).charAt(0).toUpperCase() + workoutDate.toLocaleDateString('es-ES', { month: 'short' }).slice(1)} ${workoutDate.toLocaleDateString('es-ES', { year: '2-digit' })}`;
+
+
         const li = document.createElement('li');
         li.className = 'exercise-item';
-        li.innerHTML = `<span>${w.date} - ${w.time}</span> <span>${w.exercises.length} ej.</span>`;
+        li.innerHTML = `<span>${formattedDateTime}</span> <span>${w.exercises.length} ej.</span>`;
         li.onclick = () => {
             currentWorkoutId = w.id;
             navigate('daily-screen');
@@ -93,14 +114,67 @@ function renderMainScreen() {
         listEl.appendChild(li);
     });
 
-    // Progreso
-    const total = workouts.length;
-    const percentage = total === 0 ? 0 : (completedCount / total) * 100;
-    document.getElementById('weekly-progress').style.width = `${percentage}%`;
-    document.getElementById('weekly-stats').innerText = `${completedCount}/${total} Entrenamientos completados`;
+    // Lógica de semanas consecutivas
+    const completedWorkouts = workouts.filter(w => w.exercises.length > 0 && w.exercises.every(e => e.completed));
+    
+    // Obtener identificadores únicos basados en el lunes de cada semana completada
+    const completedWeekIds = new Set(completedWorkouts.map(w => {
+        const d = new Date(w.date + 'T00:00:00');
+        const day = d.getDay() || 7; 
+        d.setDate(d.getDate() - day + 1); 
+        return d.toISOString().split('T')[0];
+    }));
+
+    let streak = 0;
+    let today = new Date();
+    let dayOfWeek = today.getDay() || 7;
+    
+    // Identificador de la semana actual
+    let currentWeekDate = new Date(today);
+    currentWeekDate.setDate(today.getDate() - dayOfWeek + 1);
+    let currentWeekId = currentWeekDate.toISOString().split('T')[0];
+
+    // Identificador de la semana anterior
+    let previousWeekDate = new Date(currentWeekDate);
+    previousWeekDate.setDate(previousWeekDate.getDate() - 7);
+    let previousWeekId = previousWeekDate.toISOString().split('T')[0];
+
+    let checkDate = currentWeekDate;
+
+    // Verificar si la racha está viva en esta semana o en la pasada
+    if (completedWeekIds.has(currentWeekId)) {
+        streak++;
+    } else if (completedWeekIds.has(previousWeekId)) {
+        checkDate = previousWeekDate;
+        streak++;
+    }
+
+    // Contar hacia atrás
+    if (streak > 0) {
+        let tempDate = new Date(checkDate);
+        while(true) {
+            tempDate.setDate(tempDate.getDate() - 7);
+            let checkId = tempDate.toISOString().split('T')[0];
+            if (completedWeekIds.has(checkId)) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // Actualizar UI
+    const statsNumEl = document.getElementById('weekly-stats-number');
+    if (statsNumEl) {
+        statsNumEl.innerText = streak;
+    }
+
+    // La barra se llenará tomando como base un objetivo de 4 semanas (1 mes)
+    const progressPercentage = streak === 0 ? 0 : Math.min((streak / 4) * 100, 100);
+    document.getElementById('weekly-progress').style.width = `${progressPercentage}%`;
 }
 
-// Pantalla Generar (Incluye Drag & Drop)
+
 function renderGenerateScreen() {
     document.getElementById('workout-date').value = '';
     document.getElementById('workout-time').value = '';
@@ -193,7 +267,16 @@ function renderDailyScreen() {
     const workout = workouts.find(w => w.id === currentWorkoutId);
     if (!workout) return;
 
-    document.getElementById('daily-title').innerText = `${workout.date} (${workout.time})`;
+    // Modificacion del formato de la fecha para el titulo
+    const workoutDate = new Date(`${workout.date}T${workout.time}`);
+    const dateStr = workoutDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: '2-digit' }).replace(',', '');
+    const capitalizedDateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    const timeStr = workoutDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    
+    const formattedDateTime = `${capitalizedDateStr.split(' ')[0]} ${timeStr} | ${workoutDate.getDate()} ${workoutDate.toLocaleDateString('es-ES', { month: 'short' }).charAt(0).toUpperCase() + workoutDate.toLocaleDateString('es-ES', { month: 'short' }).slice(1)} ${workoutDate.toLocaleDateString('es-ES', { year: '2-digit' })}`;
+    
+
+    document.getElementById('daily-title').innerText = formattedDateTime;
     
     const container = document.getElementById('daily-exercise-list');
     container.innerHTML = '';
@@ -305,6 +388,7 @@ function logExerciseData() {
     renderChart(exercise);
 }
 
+// --- Ajuste final: RenderChart con colores oscuros/neón ---
 function renderChart(exercise) {
     const ctx = document.getElementById('progressChart').getContext('2d');
     
@@ -318,11 +402,14 @@ function renderChart(exercise) {
 
     if (exercise.type === 'strength') {
         data = exercise.history.map(h => h.weight);
-        labelText = 'Evolución de Peso';
+        labelText = 'Evolución de Peso (kg)';
     } else {
         data = exercise.history.map(h => h.time);
-        labelText = 'Evolución de Tiempo';
+        labelText = 'Evolución de Tiempo (min)';
     }
+
+    // Usamos variables de CSS para que la gráfica combine
+    const neonGreen = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
 
     chartInstance = new Chart(ctx, {
         type: 'line',
@@ -331,16 +418,32 @@ function renderChart(exercise) {
             datasets: [{
                 label: labelText,
                 data: data,
-                borderColor: '#6c5ce7',
+                borderColor: neonGreen, // Verde neón
                 tension: 0.4,
                 fill: true,
-                backgroundColor: 'rgba(108, 92, 231, 0.2)'
+                // Degradado suave debajo de la línea
+                backgroundColor: 'rgba(48, 209, 88, 0.1)'
             }]
         },
         options: {
             responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#8e8e93' // Gris para la leyenda
+                    }
+                }
+            },
             scales: {
-                y: { beginAtZero: true }
+                y: { 
+                    beginAtZero: true,
+                    grid: { color: '#2c2c2e' }, // Rejilla oscura discreta
+                    ticks: { color: '#8e8e93' }
+                },
+                x: {
+                    grid: { display: false }, // Sin rejilla vertical para limpieza
+                    ticks: { color: '#8e8e93' }
+                }
             }
         }
     });
