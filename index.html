@@ -3,121 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Tracker - Premium Dark</title>
-    <!-- Mantenemos style.css pero ahora tiene diseño oscuro -->
+    <title>Avance Gym</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Chart.js para las gráficas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="app-container">
+
+    <!-- Pantalla 1: Login -->
+    <div id="login-screen" class="screen">
+        <div class="login-container dark-card">
+            <h1 class="neon-blue-text">Avance Gym</h1>
+            <input type="text" id="username-input" placeholder="Nombre de usuario" class="dark-input">
+            <input type="password" id="password-input" placeholder="Contraseña" class="dark-input">
+            <div class="button-group">
+                <button id="btn-login" class="neon-btn blue-btn">Ingresar</button>
+                <button id="btn-register" class="neon-btn outline-btn">Registrar</button>
+            </div>
+            <p id="login-msg" class="error-text"></p>
+        </div>
+    </div>
+
+    <!-- Pantalla 2: Principal -->
+    <div id="main-screen" class="screen hidden">
+        <header class="app-header">
+            <div class="header-left">
+                <h2 id="user-greeting">Hola, Usuario</h2>
+                <p id="current-date" class="neon-blue-text"></p>
+            </div>
+            <div class="header-right">
+                <!-- Recuadro de semanas (Streak) con espacio para el emoji -->
+                <div id="streak-header-box" class="streak-mini">
+                    <span id="streak-emoji" style="font-size: 1.2rem;">🦾</span>
+                    <span id="streak-weeks-count" class="neon-green-text">0</span>
+                    <span class="streak-label">Semanas</span>
+                </div>
+                <div id="user-avatar" class="avatar-circle">US</div>
+            </div>
+        </header>
+
+        <main class="content-padding">
+            <div class="summary-cards">
+                <div class="dark-card text-center">
+                    <h3 class="neon-cyan-text" id="weekly-workouts-count">0</h3>
+                    <p>Agendados esta semana</p>
+                </div>
+                <div class="dark-card text-center">
+                    <h3 class="neon-green-text" id="weekly-progress-pct">0%</h3>
+                    <p>Progreso Semanal</p>
+                </div>
+            </div>
+
+            <h3 class="section-title">Próximo Entrenamiento</h3>
+            <div id="next-workout-container" class="dark-card">
+                <!-- Se inyecta por JS -->
+            </div>
+
+            <h3 class="section-title">Tus Entrenamientos</h3>
+            <div id="workouts-list">
+                <!-- Lista de entrenamientos agendados -->
+            </div>
+
+            <button id="btn-nav-generate" class="neon-btn green-btn full-width mt-20">Crear Día de Entrenamiento</button>
+            <button id="btn-logout" class="neon-btn outline-btn full-width mt-10">Cerrar Sesión</button>
+        </main>
+    </div>
+
+    <!-- Pantalla 3: Generar Entrenamiento -->
+    <div id="generate-screen" class="screen hidden">
+        <header class="app-header">
+            <h2>Crear Entrenamiento</h2>
+            <button id="btn-back-main" class="icon-btn">Volver</button>
+        </header>
+        <main class="content-padding">
+            <div class="dark-card">
+                <input type="text" id="new-workout-name" placeholder="Nombre (Ej. Día de Pecho)" class="dark-input">
+                <select id="new-workout-day" class="dark-input mt-10">
+                    <option value="Lunes">Lunes</option>
+                    <option value="Martes">Martes</option>
+                    <option value="Miércoles">Miércoles</option>
+                    <option value="Jueves">Jueves</option>
+                    <option value="Viernes">Viernes</option>
+                    <option value="Sábado">Sábado</option>
+                    <option value="Domingo">Domingo</option>
+                </select>
+                <input type="time" id="new-workout-time" class="dark-input mt-10">
+            </div>
+
+            <h3 class="section-title">Selecciona Ejercicios</h3>
+            <div id="available-exercises" class="exercise-grid">
+                <!-- Generado por JS -->
+            </div>
+
+            <h3 class="section-title">Tu Rutina (Arrastra para ordenar)</h3>
+            <ul id="selected-exercises-list" class="drag-list">
+                <!-- Ejercicios seleccionados -->
+            </ul>
+
+            <button id="btn-save-workout" class="neon-btn green-btn full-width mt-20">Guardar Entrenamiento</button>
+        </main>
+    </div>
+
+    <!-- Pantalla 4: Entrenamiento del Día -->
+    <div id="daily-screen" class="screen hidden">
+        <header class="app-header">
+            <h2 id="daily-title">Entrenamiento</h2>
+            <button id="btn-back-main-from-daily" class="icon-btn">Volver</button>
+        </header>
         
-        <!-- PANTALLA LOGIN: Se adapta automáticamente con clases genéricas oscuras -->
-        <div id="login-screen" class="screen active">
-            <div class="dark-card text-center">
-                <h2>Bienvenido</h2>
-                <input type="text" id="username" placeholder="Nombre de usuario" class="dark-input">
-                <input type="password" id="password" placeholder="Contraseña" class="dark-input">
-                <button onclick="login()" class="main-btn">Iniciar Sesión / Registrarse</button>
-            </div>
-        </div>
-
-        <!-- PANTALLA PRINCIPAL (HOME): ESTA ES LA QUE HEMOS REDISEÑADO -->
-        <div id="main-screen" class="screen">
-            <!-- Cabecera estilo image_0.png: Saludo a la izquierda, Avatar a la derecha -->
-            <div class="main-header">
-                <div class="greeting-container">
-                    <span class="current-date" id="current-date-display">martes, 1 abr</span> <!-- Se llena con JS -->
-                    <h2 id="greeting">Hola, Usuario</h2>
+        <main class="content-padding">
+            <div class="completion-container dark-card text-center">
+                <div class="circular-progress" id="daily-circular-progress">
+                    <span id="daily-progress-text" class="neon-green-text">0%</span>
                 </div>
-                <!-- Avatar genérico (puedes poner imagen luego) -->
-                <div class="user-avatar" id="user-avatar-initials">U</div>
+                <p>Completado</p>
+            </div>
+
+            <div class="action-buttons mt-10">
+                <button id="btn-edit-daily" class="neon-btn outline-btn full-width">Editar Día</button>
+            </div>
+
+            <h3 class="section-title">Ejercicios</h3>
+            <div id="daily-exercises-list">
+                <!-- Se inyecta por JS -->
             </div>
             
-            <!-- Tarjeta de Semanas Ejercitándose -->
+            <button id="btn-finish-workout" class="neon-btn blue-btn full-width mt-20">Finalizar Entrenamiento</button>
+        </main>
+    </div>
+
+    <!-- Pantalla 5: Detalle del Entrenamiento (Registro y Gráfica) -->
+    <div id="exercise-screen" class="screen hidden">
+        <header class="app-header">
+            <h2 id="exercise-title">Ejercicio</h2>
+            <button id="btn-back-daily" class="icon-btn">Volver</button>
+        </header>
+        <main class="content-padding">
+            
             <div class="dark-card">
-                <h3>Semanas Ejercitándose</h3>
-                <div class="progress-stats-container">
-                    <div id="weekly-stats-text">
-                        <span id="weekly-stats-number">0</span> 
-                        <span id="weekly-stats-total">SEMANAS SEGUIDAS</span>
-                    </div>
-                    <div class="weekly-bar-container">
-                        <div class="progress-bar" id="weekly-progress"></div>
-                    </div>
+                <h3 class="section-title">Registrar Avance</h3>
+                <div class="input-grid">
+                    <input type="number" id="reg-weight" placeholder="Peso (kg/lb)" class="dark-input">
+                    <input type="number" id="reg-reps" placeholder="Repeticiones" class="dark-input">
+                    <input type="number" id="reg-time" placeholder="Tiempo (min)" class="dark-input">
+                    <input type="number" id="reg-speed" placeholder="Velocidad" class="dark-input">
                 </div>
+                <button id="btn-save-record" class="neon-btn green-btn full-width mt-10">Guardar Registro</button>
             </div>
 
-            <!-- Tarjeta de Próximos -->
-            <div class="dark-card">
-                <h3>Próximos Entrenamientos</h3>
-                <ul id="upcoming-workouts" class="workout-list">
-                    <!-- Los ítems se llenan con JS pero usarán el estilo oscuro -->
-                </ul>
-                <button onclick="navigate('generate-screen')" class="main-btn mt-2">
-                    <i>+</i> Crear Entrenamiento
-                </button>
-            </div>
-            <!-- Botón de cerrar sesión, más discreto al final -->
-            <button onclick="logout()" class="main-btn mt-2 danger">Cerrar Sesión</button>
-        </div>
-
-        <!-- OTRAS PANTALLAS: Se actualizan los nombres de clase para usar los nuevos estilos oscuros -->
-        <div id="generate-screen" class="screen">
-            <h2>Nuevo Entrenamiento</h2>
-            
-            <input type="date" id="workout-date" class="dark-input">
-            <input type="time" id="workout-time" class="dark-input">
-            
-            <div class="split-view">
-                <div class="dark-card half">
-                    <h3>Catálogo</h3>
-                    <ul id="exercise-catalog" class="exercise-list"></ul>
-                </div>
-                <div class="dark-card half">
-                    <h3>Tu Rutina (Arrastra)</h3>
-                    <ul id="selected-exercises" class="exercise-list" ondragover="allowDrop(event)" ondrop="drop(event)"></ul>
-                </div>
-            </div>
-            
-            <div class="btn-group">
-                <button onclick="saveWorkout()" class="main-btn">Guardar</button>
-                <button onclick="navigate('main-screen')" class="main-btn secondary">Cancelar</button>
-            </div>
-        </div>
-
-        <div id="daily-screen" class="screen">
-            <div class="header-flex">
-                <h2 id="daily-title">Entrenamiento</h2>
-                <div class="circular-progress" id="daily-progress-circle">
-                    <span id="daily-progress-text">0%</span>
-                </div>
-            </div>
-
-            <div id="daily-exercise-list" class="daily-cards-container"></div>
-            
-            <div class="btn-group mt-2">
-                <button onclick="navigate('main-screen')" class="main-btn secondary">Volver</button>
-                <button onclick="editWorkout()" class="main-btn danger">Editar</button>
-            </div>
-        </div>
-
-        <div id="exercise-screen" class="screen">
-            <h2 id="detail-title">Ejercicio</h2>
-            
-            <div class="dark-card" id="input-container"></div>
-            
-            <button onclick="logExerciseData()" class="main-btn mt-2">Registrar Datos</button>
-
-            <div class="dark-card mt-2">
-                <h3>Progreso Histórico</h3>
+            <div class="dark-card mt-20">
+                <h3 class="section-title">Historial de Progreso</h3>
+                <select id="chart-metric-selector" class="dark-input mb-10">
+                    <option value="weight">Peso</option>
+                    <option value="reps">Repeticiones</option>
+                    <option value="time">Tiempo</option>
+                </select>
                 <canvas id="progressChart"></canvas>
             </div>
 
-            <button onclick="navigate('daily-screen')" class="main-btn mt-2 secondary">Volver al Día</button>
-        </div>
-
+        </main>
     </div>
-    <!-- Mantenemos app.js pero haremos pequeños ajustes -->
+
     <script src="app.js"></script>
 </body>
 </html>

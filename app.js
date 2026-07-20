@@ -1,449 +1,475 @@
-/* app.js - Ajustes para diseño oscuro */
-
-// Base de datos simulada y Estado (Mantenemos igual)
-const gymDatabase = [
-    { id: 'e1', name: 'Press de Pecho', type: 'strength' },
-    { id: 'e2', name: 'Sentadilla', type: 'strength' },
-    { id: 'e3', name: 'Peso Muerto', type: 'strength' },
-    { id: 'e4', name: 'Extensión de Pierna', type: 'strength' },
-    { id: 'e5', name: 'Caminadora', type: 'cardio' },
-    { id: 'e6', name: 'Elíptica', type: 'cardio' },
-    { id: 'e7', name: 'Bicicleta Estática', type: 'cardio' }
+// Base de datos de ejercicios disponible
+const dbExercises = [
+    "Press de Banca", "Sentadilla", "Peso Muerto", "Prensa de Piernas", 
+    "Dominadas", "Jalón al Pecho", "Curl de Bíceps", "Extensión de Tríceps", 
+    "Cinta de Correr", "Elíptica", "Remo con Barra", "Elevaciones Laterales"
 ];
 
+// Estado global de la aplicación
 let currentUser = null;
+let appData = {
+    workouts: [],
+    history: {}
+};
 let currentWorkoutId = null;
-let currentExerciseIndex = null;
+let currentExerciseName = null;
 let chartInstance = null;
 
-// Inicialización
-window.onload = () => {
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedUser) {
-        currentUser = savedUser;
-        navigate('main-screen');
-    }
-    
-    // Mostramos la fecha actual estilo image_0.png en el Home
-    updateCurrentDateDisplay();
+// Referencias a las pantallas
+const screens = {
+    login: document.getElementById('login-screen'),
+    main: document.getElementById('main-screen'),
+    generate: document.getElementById('generate-screen'),
+    daily: document.getElementById('daily-screen'),
+    exercise: document.getElementById('exercise-screen')
 };
 
-// Utilidad para la fecha (Estilo image_0.png: "martes, 1 abr")
-function updateCurrentDateDisplay() {
-    const dateEl = document.getElementById('current-date-display');
-    if (!dateEl) return;
-    const now = new Date();
-    const options = { weekday: 'long', day: 'numeric', month: 'short' };
-    // 'es-ES' para español, por ejemplo "martes, 1 abr"
-    dateEl.innerText = now.toLocaleDateString('es-ES', options);
+// Utilidad para cambiar pantallas
+function showScreen(screenId) {
+    Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+    screens[screenId].classList.remove('hidden');
 }
 
-// Navegación (Mantenemos igual)
-function navigate(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-    
-    if (screenId === 'main-screen') renderMainScreen();
-    if (screenId === 'generate-screen') renderGenerateScreen();
-    if (screenId === 'daily-screen') renderDailyScreen();
-    if (screenId === 'exercise-screen') renderExerciseScreen();
-}
-
-// Lógica de Autenticación Local
-function login() {
-    const user = document.getElementById('username').value.trim();
-    if (user) {
-        currentUser = user;
-        localStorage.setItem('currentUser', user);
-        
-        if (!localStorage.getItem(`workouts_${user}`)) {
-            localStorage.setItem(`workouts_${user}`, JSON.stringify([]));
+// --- VERIFICACIÓN DE SESIÓN ACTIVA ---
+window.addEventListener('DOMContentLoaded', () => {
+    const activeUser = localStorage.getItem('ag_active_user');
+    if (activeUser) {
+        const usersDb = JSON.parse(localStorage.getItem('ag_users') || '{}');
+        if (usersDb[activeUser]) {
+            loginSuccess(activeUser, usersDb[activeUser].data);
+        } else {
+            showScreen('login');
         }
-        navigate('main-screen');
+    } else {
+        showScreen('login');
     }
-}
+});
 
-function logout() {
-    currentUser = null;
-    localStorage.removeItem('currentUser');
-    navigate('login-screen');
-}
+// --- LÓGICA DE LOGIN ---
+document.getElementById('btn-login').addEventListener('click', () => handleAuth(false));
+document.getElementById('btn-register').addEventListener('click', () => handleAuth(true));
 
-// Utilidades de Datos (Mantenemos igual)
-function getWorkouts() {
-    return JSON.parse(localStorage.getItem(`workouts_${currentUser}`)) || [];
-}
+function handleAuth(isRegister) {
+    const user = document.getElementById('username-input').value.trim();
+    const pass = document.getElementById('password-input').value.trim();
+    const msg = document.getElementById('login-msg');
 
-function saveWorkoutsToStorage(workouts) {
-    localStorage.setItem(`workouts_${currentUser}`, JSON.stringify(workouts));
-}
-
-function renderMainScreen() {
-    document.getElementById('greeting').innerText = `Hola, ${currentUser}`;
-    const initialsEl = document.getElementById('user-avatar-initials');
-    if (initialsEl && currentUser) {
-        initialsEl.innerText = currentUser.charAt(0).toUpperCase();
-    }
-
-    const workouts = getWorkouts();
-    const listEl = document.getElementById('upcoming-workouts');
-    listEl.innerHTML = '';
-    
-    // Renderizar próximos entrenamientos
-    workouts.sort((a, b) => new Date(`${a.date}T${a.time}`) - new Date(`${b.date}T${b.time}`));
-    
-    workouts.forEach(w => {
-        if (listEl.children.length >= 3) return; 
-
-        const workoutDate = new Date(`${w.date}T${w.time}`);
-        // Modificación del formato de fecha 
-        const dateStr = workoutDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: '2-digit' }).replace(',', '');
-        const capitalizedDateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-        const timeStr = workoutDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-        
-        const formattedDateTime = `${capitalizedDateStr.split(' ')[0]} ${timeStr} | ${workoutDate.getDate()} ${workoutDate.toLocaleDateString('es-ES', { month: 'short' }).charAt(0).toUpperCase() + workoutDate.toLocaleDateString('es-ES', { month: 'short' }).slice(1)} ${workoutDate.toLocaleDateString('es-ES', { year: '2-digit' })}`;
-
-
-        const li = document.createElement('li');
-        li.className = 'exercise-item';
-        li.innerHTML = `<span>${formattedDateTime}</span> <span>${w.exercises.length} ej.</span>`;
-        li.onclick = () => {
-            currentWorkoutId = w.id;
-            navigate('daily-screen');
-        };
-        listEl.appendChild(li);
-    });
-
-    // Lógica de semanas consecutivas
-    const completedWorkouts = workouts.filter(w => w.exercises.length > 0 && w.exercises.every(e => e.completed));
-    
-    // Obtener identificadores únicos basados en el lunes de cada semana completada
-    const completedWeekIds = new Set(completedWorkouts.map(w => {
-        const d = new Date(w.date + 'T00:00:00');
-        const day = d.getDay() || 7; 
-        d.setDate(d.getDate() - day + 1); 
-        return d.toISOString().split('T')[0];
-    }));
-
-    let streak = 0;
-    let today = new Date();
-    let dayOfWeek = today.getDay() || 7;
-    
-    // Identificador de la semana actual
-    let currentWeekDate = new Date(today);
-    currentWeekDate.setDate(today.getDate() - dayOfWeek + 1);
-    let currentWeekId = currentWeekDate.toISOString().split('T')[0];
-
-    // Identificador de la semana anterior
-    let previousWeekDate = new Date(currentWeekDate);
-    previousWeekDate.setDate(previousWeekDate.getDate() - 7);
-    let previousWeekId = previousWeekDate.toISOString().split('T')[0];
-
-    let checkDate = currentWeekDate;
-
-    // Verificar si la racha está viva en esta semana o en la pasada
-    if (completedWeekIds.has(currentWeekId)) {
-        streak++;
-    } else if (completedWeekIds.has(previousWeekId)) {
-        checkDate = previousWeekDate;
-        streak++;
-    }
-
-    // Contar hacia atrás
-    if (streak > 0) {
-        let tempDate = new Date(checkDate);
-        while(true) {
-            tempDate.setDate(tempDate.getDate() - 7);
-            let checkId = tempDate.toISOString().split('T')[0];
-            if (completedWeekIds.has(checkId)) {
-                streak++;
-            } else {
-                break;
-            }
-        }
-    }
-
-    // Actualizar UI
-    const statsNumEl = document.getElementById('weekly-stats-number');
-    if (statsNumEl) {
-        statsNumEl.innerText = streak;
-    }
-
-    // La barra se llenará tomando como base un objetivo de 4 semanas (1 mes)
-    const progressPercentage = streak === 0 ? 0 : Math.min((streak / 4) * 100, 100);
-    document.getElementById('weekly-progress').style.width = `${progressPercentage}%`;
-}
-
-
-function renderGenerateScreen() {
-    document.getElementById('workout-date').value = '';
-    document.getElementById('workout-time').value = '';
-    
-    const catalog = document.getElementById('exercise-catalog');
-    const selected = document.getElementById('selected-exercises');
-    catalog.innerHTML = '';
-    selected.innerHTML = '';
-
-    gymDatabase.forEach(ex => {
-        const li = document.createElement('li');
-        li.className = 'exercise-item';
-        li.draggable = true;
-        li.id = `cat-${ex.id}`;
-        li.innerText = ex.name;
-        li.ondragstart = drag;
-        li.onclick = () => moveToSelected(ex);
-        catalog.appendChild(li);
-    });
-}
-
-function moveToSelected(exercise) {
-    const selected = document.getElementById('selected-exercises');
-    const li = document.createElement('li');
-    li.className = 'exercise-item';
-    li.draggable = true;
-    li.id = `sel-${Date.now()}-${exercise.id}`;
-    li.dataset.exId = exercise.id;
-    li.innerText = exercise.name;
-    li.ondragstart = drag;
-    li.ondblclick = () => li.remove(); // Doble clic para remover
-    selected.appendChild(li);
-}
-
-function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);
-}
-
-function allowDrop(ev) {
-    ev.preventDefault();
-}
-
-function drop(ev) {
-    ev.preventDefault();
-    const data = ev.dataTransfer.getData("text");
-    const nodeCopy = document.getElementById(data).cloneNode(true);
-    
-    if (data.startsWith('cat-')) {
-        nodeCopy.id = `sel-${Date.now()}-${data.replace('cat-', '')}`;
-        nodeCopy.dataset.exId = data.replace('cat-', '');
-        nodeCopy.ondblclick = () => nodeCopy.remove();
-        document.getElementById('selected-exercises').appendChild(nodeCopy);
-    } else if (data.startsWith('sel-')) {
-        // Reordenamiento básico
-        document.getElementById('selected-exercises').appendChild(document.getElementById(data));
-    }
-}
-
-function saveWorkout() {
-    const date = document.getElementById('workout-date').value;
-    const time = document.getElementById('workout-time').value;
-    const selectedNodes = document.getElementById('selected-exercises').children;
-
-    if (!date || !time || selectedNodes.length === 0) {
-        alert('Selecciona fecha, hora y al menos un ejercicio.');
+    if (!user || !pass) {
+        msg.innerText = "Llena todos los campos";
         return;
     }
 
-    const exercises = Array.from(selectedNodes).map(node => {
-        const exDb = gymDatabase.find(g => g.id === node.dataset.exId);
-        return {
-            id: Date.now().toString() + Math.random(),
-            baseId: exDb.id,
-            name: exDb.name,
-            type: exDb.type,
-            completed: false,
-            history: [] // { date, weight, reps, time, etc }
-        };
-    });
+    const usersDb = JSON.parse(localStorage.getItem('ag_users') || '{}');
 
-    const workouts = getWorkouts();
-    workouts.push({ id: Date.now().toString(), date, time, exercises });
-    saveWorkoutsToStorage(workouts);
-    navigate('main-screen');
+    if (isRegister) {
+        if (usersDb[user]) {
+            msg.innerText = "El usuario ya existe";
+        } else {
+            usersDb[user] = { password: pass, data: { workouts: [], history: {} } };
+            localStorage.setItem('ag_users', JSON.stringify(usersDb));
+            loginSuccess(user, usersDb[user].data);
+        }
+    } else {
+        if (usersDb[user] && usersDb[user].password === pass) {
+            loginSuccess(user, usersDb[user].data);
+        } else {
+            msg.innerText = "Credenciales incorrectas";
+        }
+    }
 }
 
-// Pantalla Entrenamiento Diario
-function renderDailyScreen() {
-    const workouts = getWorkouts();
-    const workout = workouts.find(w => w.id === currentWorkoutId);
+function loginSuccess(username, data) {
+    currentUser = username;
+    appData = data;
+    
+    // Guardar sesión activa en LocalStorage
+    localStorage.setItem('ag_active_user', username);
+
+    document.getElementById('username-input').value = '';
+    document.getElementById('password-input').value = '';
+    document.getElementById('login-msg').innerText = '';
+    
+    document.getElementById('user-greeting').innerText = `Hola, ${username}`;
+    document.getElementById('user-avatar').innerText = username.substring(0, 2).toUpperCase();
+    
+    const options = { weekday: 'long', day: 'numeric', month: 'short' };
+    let dateStr = new Date().toLocaleDateString('es-ES', options);
+    document.getElementById('current-date').innerText = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+    
+    renderMainScreen();
+    showScreen('main');
+}
+
+// Cerrar sesión borra la llave temporal y te devuelve al Login
+document.getElementById('btn-logout').addEventListener('click', () => {
+    currentUser = null;
+    appData = { workouts: [], history: {} };
+    localStorage.removeItem('ag_active_user');
+    showScreen('login');
+});
+
+function saveData() {
+    if (!currentUser) return;
+    const usersDb = JSON.parse(localStorage.getItem('ag_users') || '{}');
+    usersDb[currentUser].data = appData;
+    localStorage.setItem('ag_users', JSON.stringify(usersDb));
+}
+
+// --- LÓGICA ESTRICTA DE CÁLCULO DE RACHA (SEMANAS) ---
+
+// Función para obtener la fecha exacta del Lunes de una semana dada
+function getMondayTimestamp(date) {
+    const d = new Date(date);
+    const day = d.getDay(); 
+    // Si es domingo (0), restamos 6 días para volver al lunes. Si no, restamos day - 1.
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+    const monday = new Date(d.getFullYear(), d.getMonth(), diff);
+    monday.setHours(0, 0, 0, 0); // Normalizamos a la medianoche
+    return monday.getTime();
+}
+
+// Función que evalúa la protección y el número de semanas consecutivas
+function calculateStreak() {
+    if (!appData.workouts) return { streak: 0, isProtected: false };
+    
+    const completedWorkouts = appData.workouts.filter(w => w.completed);
+    if (completedWorkouts.length === 0) return { streak: 0, isProtected: false };
+
+    // Set para almacenar únicamente los "Lunes" en los que se registró actividad
+    const weeksSet = new Set();
+    completedWorkouts.forEach(w => {
+        const timestamp = w.completedAt ? w.completedAt : parseInt(w.id);
+        weeksSet.add(getMondayTimestamp(timestamp));
+    });
+
+    const currentMonday = getMondayTimestamp(new Date());
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+
+    let streak = 0;
+    let checkWeek = currentMonday;
+    
+    // Verificamos si en la semana ACTUAL ya hay actividad
+    let isProtected = weeksSet.has(checkWeek);
+
+    if (isProtected) {
+        while (weeksSet.has(checkWeek)) {
+            streak++;
+            checkWeek -= oneWeekMs;
+        }
+    } else {
+        checkWeek -= oneWeekMs; 
+        
+        if (weeksSet.has(checkWeek)) {
+            while (weeksSet.has(checkWeek)) {
+                streak++;
+                checkWeek -= oneWeekMs;
+            }
+        } else {
+            streak = 0;
+        }
+    }
+
+    return { streak, isProtected };
+}
+
+// --- PANTALLA PRINCIPAL ---
+document.getElementById('btn-nav-generate').addEventListener('click', () => {
+    renderGenerateScreen();
+    showScreen('generate');
+});
+
+function renderMainScreen() {
+    const workoutsList = document.getElementById('workouts-list');
+    const nextWorkoutContainer = document.getElementById('next-workout-container');
+    workoutsList.innerHTML = '';
+    
+    let completedThisWeek = 0;
+    
+    // Obtenemos los valores strictos de la racha
+    const streakData = calculateStreak(); 
+    document.getElementById('streak-weeks-count').innerText = streakData.streak;
+    
+    // Cambiamos el Emoji dependiendo de si la semana está asegurada
+    // 💪 = Protegido / 🦾 (Brazo mecánico) = Aún sin entrenar esta semana
+    document.getElementById('streak-emoji').innerText = streakData.isProtected ? "💪" : "🦾";
+
+    if (appData.workouts.length === 0) {
+        workoutsList.innerHTML = '<p class="error-text">No hay entrenamientos agendados.</p>';
+        nextWorkoutContainer.innerHTML = '<p class="text-center">No hay próximos entrenamientos</p>';
+        document.getElementById('weekly-workouts-count').innerText = "0";
+        document.getElementById('weekly-progress-pct').innerText = "0%";
+        return;
+    }
+
+    document.getElementById('weekly-workouts-count').innerText = appData.workouts.length;
+
+    let nextWorkoutFound = false;
+
+    appData.workouts.forEach(workout => {
+        if (workout.completed) completedThisWeek++;
+        
+        const div = document.createElement('div');
+        div.className = 'dark-card';
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="color: var(--neon-blue)">${workout.name}</h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted)">${workout.day} - ${workout.time}</p>
+                </div>
+                <button class="icon-btn" onclick="openDailyWorkout('${workout.id}')">➜</button>
+            </div>
+        `;
+        workoutsList.appendChild(div);
+
+        if (!workout.completed && !nextWorkoutFound) {
+            nextWorkoutContainer.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="color: var(--neon-green)">${workout.name}</h4>
+                        <p style="font-size: 0.8rem; color: var(--text-muted)">${workout.day} - ${workout.time}</p>
+                    </div>
+                    <button class="neon-btn green-btn" style="padding: 10px;" onclick="openDailyWorkout('${workout.id}')">Iniciar</button>
+                </div>
+            `;
+            nextWorkoutFound = true;
+        }
+    });
+
+    if (!nextWorkoutFound) {
+        nextWorkoutContainer.innerHTML = '<p class="text-center">¡Todos completados!</p>';
+    }
+
+    const pct = Math.round((completedThisWeek / appData.workouts.length) * 100) || 0;
+    document.getElementById('weekly-progress-pct').innerText = `${pct}%`;
+}
+
+// --- PANTALLA GENERAR ENTRENAMIENTO ---
+let tempSelectedExercises = [];
+
+document.getElementById('btn-back-main').addEventListener('click', () => showScreen('main'));
+
+function renderGenerateScreen() {
+    tempSelectedExercises = [];
+    document.getElementById('new-workout-name').value = '';
+    document.getElementById('new-workout-time').value = '';
+    
+    const grid = document.getElementById('available-exercises');
+    grid.innerHTML = '';
+    
+    dbExercises.forEach(ex => {
+        const div = document.createElement('div');
+        div.className = 'exercise-item';
+        div.innerText = ex;
+        div.onclick = () => {
+            if (!tempSelectedExercises.includes(ex)) {
+                tempSelectedExercises.push(ex);
+                renderSelectedExercisesList();
+                div.classList.add('selected');
+            }
+        };
+        grid.appendChild(div);
+    });
+    renderSelectedExercisesList();
+}
+
+function renderSelectedExercisesList() {
+    const list = document.getElementById('selected-exercises-list');
+    list.innerHTML = '';
+    tempSelectedExercises.forEach((ex, index) => {
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.dataset.index = index;
+        li.innerHTML = `<span>${ex}</span> <span style="color:var(--neon-red); cursor:pointer;" onclick="removeTempExercise(${index})">X</span>`;
+        
+        li.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', index); });
+        li.addEventListener('dragover', (e) => { e.preventDefault(); });
+        li.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const fromIndex = parseInt(e.dataTransfer.getData('text/plain'));
+            const toIndex = index;
+            const item = tempSelectedExercises.splice(fromIndex, 1)[0];
+            tempSelectedExercises.splice(toIndex, 0, item);
+            renderSelectedExercisesList();
+        });
+        
+        list.appendChild(li);
+    });
+}
+
+window.removeTempExercise = function(index) {
+    tempSelectedExercises.splice(index, 1);
+    renderSelectedExercisesList();
+    renderGenerateScreen(); 
+}
+
+document.getElementById('btn-save-workout').addEventListener('click', () => {
+    const name = document.getElementById('new-workout-name').value || 'Rutina';
+    const day = document.getElementById('new-workout-day').value;
+    const time = document.getElementById('new-workout-time').value || '12:00';
+
+    if (tempSelectedExercises.length === 0) return alert("Selecciona al menos un ejercicio");
+
+    const newWorkout = {
+        id: Date.now().toString(),
+        name, day, time,
+        exercises: tempSelectedExercises.map(ex => ({ name: ex, completed: false })),
+        completed: false
+    };
+
+    appData.workouts.push(newWorkout);
+    saveData();
+    renderMainScreen();
+    showScreen('main');
+});
+
+// --- PANTALLA ENTRENAMIENTO DEL DÍA ---
+document.getElementById('btn-back-main-from-daily').addEventListener('click', () => {
+    renderMainScreen();
+    showScreen('main');
+});
+
+document.getElementById('btn-edit-daily').addEventListener('click', () => {
+    appData.workouts = appData.workouts.filter(w => w.id !== currentWorkoutId);
+    saveData();
+    renderMainScreen();
+    showScreen('main');
+});
+
+window.openDailyWorkout = function(id) {
+    currentWorkoutId = id;
+    const workout = appData.workouts.find(w => w.id === id);
     if (!workout) return;
 
-    // Modificacion del formato de la fecha para el titulo
-    const workoutDate = new Date(`${workout.date}T${workout.time}`);
-    const dateStr = workoutDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short', year: '2-digit' }).replace(',', '');
-    const capitalizedDateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
-    const timeStr = workoutDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    
-    const formattedDateTime = `${capitalizedDateStr.split(' ')[0]} ${timeStr} | ${workoutDate.getDate()} ${workoutDate.toLocaleDateString('es-ES', { month: 'short' }).charAt(0).toUpperCase() + workoutDate.toLocaleDateString('es-ES', { month: 'short' }).slice(1)} ${workoutDate.toLocaleDateString('es-ES', { year: '2-digit' })}`;
-    
+    document.getElementById('daily-title').innerText = `${workout.day} ${workout.time} | ${workout.name}`;
+    renderDailyExercises();
+    showScreen('daily');
+};
 
-    document.getElementById('daily-title').innerText = formattedDateTime;
-    
-    const container = document.getElementById('daily-exercise-list');
-    container.innerHTML = '';
+function renderDailyExercises() {
+    const workout = appData.workouts.find(w => w.id === currentWorkoutId);
+    const list = document.getElementById('daily-exercises-list');
+    list.innerHTML = '';
 
     let completedCount = 0;
 
-    workout.exercises.forEach((ex, index) => {
+    workout.exercises.forEach((ex, idx) => {
         if (ex.completed) completedCount++;
-
-        // Cálculo de mejora %
-        let improvementText = '';
-        if (ex.history.length > 1) {
-            const first = ex.history[0];
-            const last = ex.history[ex.history.length - 1];
-            
-            // Lógica simple: comparamos el peso (strength) o el tiempo (cardio)
-            if (ex.type === 'strength' && first.weight) {
-                const diff = ((last.weight - first.weight) / first.weight) * 100;
-                improvementText = diff > 0 ? `+${diff.toFixed(1)}% Fuerza` : '';
-            } else if (ex.type === 'cardio' && first.time) {
-                const diff = ((last.time - first.time) / first.time) * 100;
-                improvementText = diff > 0 ? `+${diff.toFixed(1)}% Tiempo` : '';
+        
+        let improvement = 0;
+        const hist = appData.history[ex.name];
+        if (hist && hist.length > 1) {
+            const first = hist[0].weight || 0;
+            const last = hist[hist.length - 1].weight || 0;
+            if (first > 0 && last > first) {
+                improvement = Math.round(((last - first) / first) * 100);
             }
         }
 
         const div = document.createElement('div');
-        div.className = `daily-card ${ex.completed ? 'completed' : ''}`;
+        div.className = `daily-exercise-card ${ex.completed ? 'completed' : ''}`;
         div.innerHTML = `
             <div>
                 <h4>${ex.name}</h4>
-                <div class="improvement-badge">${improvementText}</div>
+                ${improvement > 0 ? `<span class="improvement-badge">+${improvement}% Mejora</span>` : ''}
             </div>
-            <input type="checkbox" ${ex.completed ? 'checked' : ''} onclick="toggleComplete(event, ${index})">
+            <div>
+                <input type="checkbox" ${ex.completed ? 'checked' : ''} onclick="toggleExerciseComplete(${idx}, event)" style="transform: scale(1.5); accent-color: var(--neon-green); margin-right: 15px;">
+                <button class="icon-btn" onclick="openExerciseDetail('${ex.name}')">📈</button>
+            </div>
         `;
-        div.onclick = (e) => {
-            if (e.target.tagName !== 'INPUT') {
-                currentExerciseIndex = index;
-                navigate('exercise-screen');
-            }
-        };
-        container.appendChild(div);
+        list.appendChild(div);
     });
 
-    // Círculo de porcentaje superior
-    const percentage = workout.exercises.length === 0 ? 0 : Math.round((completedCount / workout.exercises.length) * 100);
-    const circle = document.getElementById('daily-progress-circle');
-    circle.style.background = `conic-gradient(var(--success-color) ${percentage}%, var(--bg-color) ${percentage}%)`;
-    document.getElementById('daily-progress-text').innerText = `${percentage}%`;
+    const pct = Math.round((completedCount / workout.exercises.length) * 100) || 0;
+    document.getElementById('daily-progress-text').innerText = `${pct}%`;
+    document.getElementById('daily-circular-progress').style.background = `conic-gradient(var(--neon-green) ${pct}%, #333 0%)`;
 }
 
-function toggleComplete(event, index) {
-    const workouts = getWorkouts();
-    const workout = workouts.find(w => w.id === currentWorkoutId);
-    workout.exercises[index].completed = event.target.checked;
-    saveWorkoutsToStorage(workouts);
-    renderDailyScreen(); 
-}
+window.toggleExerciseComplete = function(idx, event) {
+    event.stopPropagation();
+    const workout = appData.workouts.find(w => w.id === currentWorkoutId);
+    workout.exercises[idx].completed = !workout.exercises[idx].completed;
+    saveData();
+    renderDailyExercises();
+};
 
-function editWorkout() {
-    alert("Función para ir a Generar Entrenamiento y cargar datos actuales. Por simplicidad de la prueba, te redigirá a Generar.");
-    navigate('generate-screen');
-}
+document.getElementById('btn-finish-workout').addEventListener('click', () => {
+    const workout = appData.workouts.find(w => w.id === currentWorkoutId);
+    workout.completed = true;
+    workout.completedAt = Date.now();
+    saveData();
+    renderMainScreen();
+    showScreen('main');
+});
 
-// Pantalla Detalle de Ejercicio y Gráfica
-function renderExerciseScreen() {
-    const workouts = getWorkouts();
-    const exercise = workouts.find(w => w.id === currentWorkoutId).exercises[currentExerciseIndex];
+// --- PANTALLA DETALLE DEL EJERCICIO (GRÁFICA) ---
+document.getElementById('btn-back-daily').addEventListener('click', () => showScreen('daily'));
+
+window.openExerciseDetail = function(name) {
+    currentExerciseName = name;
+    document.getElementById('exercise-title').innerText = name;
+    document.getElementById('reg-weight').value = '';
+    document.getElementById('reg-reps').value = '';
+    document.getElementById('reg-time').value = '';
+    document.getElementById('reg-speed').value = '';
     
-    document.getElementById('detail-title').innerText = exercise.name;
-    const container = document.getElementById('input-container');
-    container.innerHTML = '';
+    renderChart();
+    showScreen('exercise');
+};
 
-    // Inputs dinámicos
-    if (exercise.type === 'strength') {
-        container.innerHTML = `
-            <input type="number" id="val-weight" placeholder="Peso (kg/lbs)" class="neumorphic-input">
-            <input type="number" id="val-reps" placeholder="Repeticiones" class="neumorphic-input">
-        `;
-    } else {
-        container.innerHTML = `
-            <input type="number" id="val-time" placeholder="Tiempo (min)" class="neumorphic-input">
-            <input type="number" id="val-speed" placeholder="Velocidad" class="neumorphic-input">
-            <input type="number" id="val-incline" placeholder="Inclinación" class="neumorphic-input">
-        `;
+document.getElementById('btn-save-record').addEventListener('click', () => {
+    const weight = parseFloat(document.getElementById('reg-weight').value) || 0;
+    const reps = parseFloat(document.getElementById('reg-reps').value) || 0;
+    const time = parseFloat(document.getElementById('reg-time').value) || 0;
+    const speed = parseFloat(document.getElementById('reg-speed').value) || 0;
+
+    if (!appData.history[currentExerciseName]) {
+        appData.history[currentExerciseName] = [];
     }
 
-    renderChart(exercise);
-}
+    appData.history[currentExerciseName].push({
+        date: new Date().toLocaleDateString('es-ES', {day: 'numeric', month: 'short'}),
+        weight, reps, time, speed
+    });
 
-function logExerciseData() {
-    const workouts = getWorkouts();
-    const exercise = workouts.find(w => w.id === currentWorkoutId).exercises[currentExerciseIndex];
-    
-    const entry = { date: new Date().toLocaleDateString() };
-    
-    if (exercise.type === 'strength') {
-        entry.weight = parseFloat(document.getElementById('val-weight').value) || 0;
-        entry.reps = parseInt(document.getElementById('val-reps').value) || 0;
-    } else {
-        entry.time = parseFloat(document.getElementById('val-time').value) || 0;
-        entry.speed = parseFloat(document.getElementById('val-speed').value) || 0;
-        entry.incline = parseFloat(document.getElementById('val-incline').value) || 0;
-    }
+    saveData();
+    renderChart();
+});
 
-    exercise.history.push(entry);
-    saveWorkoutsToStorage(workouts);
-    
-    document.querySelectorAll('#input-container input').forEach(input => input.value = '');
-    renderChart(exercise);
-}
+document.getElementById('chart-metric-selector').addEventListener('change', renderChart);
 
-// --- Ajuste final: RenderChart con colores oscuros/neón ---
-function renderChart(exercise) {
+function renderChart() {
     const ctx = document.getElementById('progressChart').getContext('2d');
-    
+    const metric = document.getElementById('chart-metric-selector').value;
+    const historyData = appData.history[currentExerciseName] || [];
+
+    const labels = historyData.map(h => h.date);
+    const dataPoints = historyData.map(h => h[metric]);
+
     if (chartInstance) {
         chartInstance.destroy();
     }
-
-    const labels = exercise.history.map(h => h.date);
-    let data = [];
-    let labelText = '';
-
-    if (exercise.type === 'strength') {
-        data = exercise.history.map(h => h.weight);
-        labelText = 'Evolución de Peso (kg)';
-    } else {
-        data = exercise.history.map(h => h.time);
-        labelText = 'Evolución de Tiempo (min)';
-    }
-
-    // Usamos variables de CSS para que la gráfica combine
-    const neonGreen = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
 
     chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: labelText,
-                data: data,
-                borderColor: neonGreen, // Verde neón
-                tension: 0.4,
+                label: `Avance de ${metric}`,
+                data: dataPoints,
+                borderColor: '#39ff14',
+                backgroundColor: 'rgba(57, 255, 20, 0.1)',
+                borderWidth: 2,
                 fill: true,
-                // Degradado suave debajo de la línea
-                backgroundColor: 'rgba(48, 209, 88, 0.1)'
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#8e8e93' // Gris para la leyenda
-                    }
-                }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                y: { 
-                    beginAtZero: true,
-                    grid: { color: '#2c2c2e' }, // Rejilla oscura discreta
-                    ticks: { color: '#8e8e93' }
-                },
-                x: {
-                    grid: { display: false }, // Sin rejilla vertical para limpieza
-                    ticks: { color: '#8e8e93' }
-                }
+                y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#a0a0a0' } },
+                x: { grid: { color: '#333' }, ticks: { color: '#a0a0a0' } }
             }
         }
     });

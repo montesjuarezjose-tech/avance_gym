@@ -1,309 +1,275 @@
-/* style.css - Diseño Oscuro Premium (Ref: image_0.png) */
 :root {
-    /* Paleta inspirada en Apple Fitness+ (image_0.png) */
-    --bg-color: #000000; /* Negro absoluto de fondo */
-    --card-bg: #1c1c1e; /* Gris muy oscuro para tarjetas */
-    --text-main: #ffffff; /* Blanco puro para texto principal */
-    --text-secondary: #8e8e93; /* Gris para subtítulos y textos secundarios */
-    
-    /* Colores vibrantes neón para progreso y acentos */
-    --primary-color: #30d158; /* Verde neón (similar a "Ejercicio" en image_0.png) */
-    --accent-blue: #0a84ff;   /* Azul vibrante (para fechas/tiempos) */
-    --accent-red: #ff453a;    /* Rojo neón (para alertas o cerrar sesión) */
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Sombra suave para dar profundidad */
+    --bg-color: #000000;
+    --card-bg: #1c1c1e;
+    --text-main: #ffffff;
+    --text-muted: #a0a0a0;
+    --neon-blue: #00f3ff;
+    --neon-green: #39ff14;
+    --neon-red: #ff2a2a;
+    --border-radius: 16px;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; /* Tipografía más de sistema moderno */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased; /* Mejor renderizado de texto en oscuro */
 }
 
-.app-container {
-    width: 100%;
-    max-width: 600px;
-    padding: 20px;
+.hidden {
+    display: none !important;
 }
 
 .screen {
-    display: none;
-    animation: fadeIn 0.3s ease-in-out;
+    min-height: 100vh;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: var(--bg-color);
 }
 
-.screen.active {
-    display: block;
+.content-padding {
+    padding: 20px;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Encabezado Principal */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--bg-color);
+    border-bottom: 1px solid #333;
 }
 
-h2, h3 {
+.header-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Recuadro de semanas (Streak) */
+.streak-mini {
+    padding: 5px 15px;
+    border-radius: 12px;
+    background-color: var(--card-bg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #333;
+}
+
+.streak-mini .neon-green-text {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.streak-mini .streak-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Avatar de usuario */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
     color: var(--text-main);
-    font-weight: 700;
+    border: 2px solid var(--neon-blue);
 }
 
-h2 { font-size: 2rem; margin-bottom: 5px; } /* Grande como "Resumen" en image_0.png */
-h3 { font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
-
-p { color: var(--text-secondary); }
-
-.text-center { text-align: center; }
-.mt-2 { margin-top: 20px; }
-
-/* --- Estilos de Tarjetas (Premium Dark) --- */
+/* Tarjetas y Contenedores */
 .dark-card {
     background-color: var(--card-bg);
-    border-radius: 16px; /* Bordes redondeados suaves como en image_0.png */
+    border-radius: var(--border-radius);
     padding: 20px;
     margin-bottom: 15px;
-    box-shadow: var(--card-shadow);
+    border: 1px solid #2c2c2e;
 }
 
-/* --- Elementos de Entrada (Inputs) --- */
+.summary-cards {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-cards .dark-card {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mb-10 { margin-bottom: 10px; }
+
+/* Tipografía de Acento */
+.neon-blue-text { color: var(--neon-blue); }
+.neon-green-text { color: var(--neon-green); }
+.neon-cyan-text { color: #00f3ff; }
+.error-text { color: var(--neon-red); text-align: center; margin-top: 10px; font-size: 0.9rem;}
+.section-title { margin: 20px 0 10px 0; font-size: 1.1rem; color: var(--text-muted); }
+
+/* Inputs y Formularios */
 .dark-input {
     width: 100%;
     padding: 15px;
-    margin-bottom: 15px;
-    border: none;
-    border-radius: 12px;
-    background-color: #2c2c2e; /* Ligeramente más claro que la tarjeta */
+    background-color: #000;
+    border: 1px solid #333;
+    border-radius: 10px;
     color: var(--text-main);
+    margin-bottom: 15px;
     font-size: 1rem;
-    outline: none;
-    transition: background-color 0.2s;
 }
 
 .dark-input:focus {
-    background-color: #3a3a3c;
-    border: 1px solid var(--accent-blue);
+    outline: none;
+    border-color: var(--neon-blue);
 }
 
-/* --- Botones Vibrant Modern --- */
-.main-btn {
-    width: 100%;
-    padding: 16px;
-    border: none;
-    border-radius: 12px;
-    background-color: var(--primary-color);
-    color: #000000; /* Texto negro sobre fondo neón para contraste */
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.1s, opacity 0.2s;
-}
-
-.main-btn:active {
-    transform: scale(0.98);
-}
-
-.main-btn:hover {
-    opacity: 0.9;
-}
-
-.main-btn.secondary {
-    background-color: #2c2c2e;
-    color: var(--text-main);
-}
-
-.main-btn.danger {
-    background-color: transparent;
-    color: var(--accent-red);
-    border: 1px solid var(--accent-red);
-}
-
-.btn-group {
-    display: flex;
+.input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
 }
 
-/* --- Lista de Entrenamientos (Pantalla Principal) --- */
-.workout-list {
-    list-style: none;
+/* Botones */
+.neon-btn {
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    transition: 0.3s;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.blue-btn { background-color: var(--neon-blue); color: #000; }
+.green-btn { background-color: var(--neon-green); color: #000; }
+.outline-btn { background-color: transparent; border: 1px solid #555; color: var(--text-main); }
+.icon-btn { background: none; border: none; color: var(--neon-blue); font-size: 1rem; cursor: pointer; }
+
+/* Login Container */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+.login-container h1 {
+    margin-bottom: 30px;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Listas y Ejercicios */
+.exercise-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
 .exercise-item {
-    padding: 18px;
-    margin-bottom: 10px;
-    border-radius: 12px;
-    background-color: #2c2c2e; /* Fondo de ítem dentro de tarjeta */
+    background-color: var(--card-bg);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #333;
     cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.exercise-item.selected {
+    border-color: var(--neon-green);
+    background-color: rgba(57, 255, 20, 0.1);
+}
+
+.drag-list {
+    list-style: none;
+}
+
+.drag-list li {
+    background-color: var(--card-bg);
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background-color 0.2s;
+    border: 1px solid #333;
+    cursor: grab;
 }
 
-.exercise-item:hover {
-    background-color: #3a3a3c;
-}
-
-.exercise-item span:first-child {
-    color: var(--accent-blue); /* La fecha/hora resalta en azul neón */
-    font-weight: 600;
-}
-
-.exercise-item span:last-child {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-/* --- Barra de Progreso Semanal (Estilo image_0.png) --- */
-.progress-stats-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-top: 10px;
-}
-
-.weekly-bar-container {
-    flex-grow: 1;
-    height: 12px;
-    background-color: #2c2c2e;
-    border-radius: 6px;
-    overflow: hidden;
-    position: relative;
-}
-
-.progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary-color) 0%, #a6ffcb 100%); /* Degradado verde neón */
-    border-radius: 6px;
-    width: 0%;
-    transition: width 0.5s ease-out;
-}
-
-#weekly-stats-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-#weekly-stats-total {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-/* --- Cabecera Principal (Saludo y Avatar imitando image_0.png) --- */
-.main-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 25px;
-}
-
-.greeting-container {
-    display: flex;
-    flex-direction: column;
-}
-
-.current-date {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    text-transform: capitalize;
-}
-
-.user-avatar {
-    width: 45px;
-    height: 45px;
+/* Circulo de Progreso */
+.circular-progress {
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
-    background-color: #3a3a3c;
+    background: conic-gradient(var(--neon-green) 0%, #333 0%);
     display: flex;
     justify-content: center;
     align-items: center;
-    font-weight: bold;
-    color: var(--text-secondary);
-    border: 2px solid #2c2c2e;
-    font-size: 1.2rem;
-}
-
-/* ... (Estilos para las otras pantallas que quedan fuera del alcance de la modificación solicitada, pero se adaptan automáticamente por usar las clases globales .dark-card y .main-btn) ... */
-.circular-progress {
-    border: none; /* Quitamos bordes antiguos */
-    background: conic-gradient(var(--primary-color) 0%, #2c2c2e 0%);
-    box-shadow: var(--card-shadow);
+    margin: 0 auto 10px auto;
 }
 
 .circular-progress span {
     background-color: var(--card-bg);
-    color: var(--text-main);
-    box-shadow: none;
-}
-/* Listas y Drag & Drop */
-.exercise-list {
-    list-style: none;
-    min-height: 150px;
-}
-.header-flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.circular-progress {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: conic-gradient(var(--success-color) 0%, var(--bg-color) 0%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
-}
-
-.circular-progress span {
-    background-color: var(--bg-color);
-    width: 45px;
-    height: 45px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 0.8em;
-    font-weight: bold;
-    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+    font-size: 1.2rem;
 }
 
-.split-view {
-    display: flex;
-    gap: 15px;
-    flex-direction: column;
-}
-
-/* Tarjetas de Ejercicio Diario */
-.daily-cards-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.daily-card {
+/* Tarjeta de ejercicio en Día */
+.daily-exercise-card {
+    background-color: var(--card-bg);
     padding: 15px;
-    border-radius: 10px;
-    background-color: var(--bg-color);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    border-radius: 12px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border: 1px solid #333;
     cursor: pointer;
 }
 
-.daily-card.completed {
-    border-left: 5px solid var(--success-color);
+.daily-exercise-card.completed {
+    border-color: var(--neon-green);
 }
+
 .improvement-badge {
-    font-size: 0.8em;
-    color: var(--success-color);
-    font-weight: bold;
+    font-size: 0.8rem;
+    background-color: rgba(0, 243, 255, 0.2);
+    color: var(--neon-blue);
+    padding: 3px 8px;
+    border-radius: 10px;
 }
